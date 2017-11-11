@@ -85,6 +85,10 @@ public class MainActivity extends AppCompatActivity {
                     });
 
                 }
+                else {
+                    resultArray.clear();
+                    mAdapter.notifyDataSetChanged();
+                }
             }
         });
 
