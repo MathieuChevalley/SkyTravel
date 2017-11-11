@@ -18,8 +18,11 @@ public interface API {
     @GET("/airports/search/{name}")
     Call<List<Airport>> getAirports(@Path("name") String s);
 
-    @GET()
-    Call<ServerResponse> getSuggestions();
+    @GET("/flight/{departure}/{date}/{duration}/{maxPrice}")
+    Call<ServerResponse> getSuggestions(@Path("departure") String location,
+                                        @Path("date") String date,
+                                        @Path("duration") String duration,
+                                        @Path("maxPrice") String maxPrice);
 
     //@GET()
     //Call<List<Flight>> getFlights();

@@ -1,5 +1,7 @@
 package com.lauzhack.skytravel.utils;
 
+import java.util.List;
+
 /**
  * Created by math on 11.11.2017.
  */
@@ -7,7 +9,7 @@ package com.lauzhack.skytravel.utils;
 public class ServerResponse {
     private Departure departure;
 
-    private Suggestions[] suggestions;
+    private List<Suggestions> suggestions;
 
     public Departure getDeparture ()
     {
@@ -19,12 +21,12 @@ public class ServerResponse {
         this.departure = departure;
     }
 
-    public Suggestions[] getSuggestions ()
+    public List<Suggestions> getSuggestions ()
     {
         return suggestions;
     }
 
-    public void setSuggestions (Suggestions[] suggestions)
+    public void setSuggestions (List<Suggestions> suggestions)
     {
         this.suggestions = suggestions;
     }

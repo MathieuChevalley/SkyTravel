@@ -8,11 +8,11 @@
     <EditTextPreference
         android:key="length"
         android:title="@string/lengthTitle"
-        android:defaultValue="2"></EditTextPreference>
+        android:defaultValue="120"></EditTextPreference>
 
     <EditTextPreference
         android:key="price"
         android:title="@string/priceTitle"
-        android:defaultValue="100"></EditTextPreference>
+        android:defaultValue="1000"></EditTextPreference>
 
 </PreferenceScreen>
