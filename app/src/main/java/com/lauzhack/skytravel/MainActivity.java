@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        retrofit = new Retrofit.Builder().baseUrl("localhost:3000")
+        retrofit = new Retrofit.Builder().baseUrl("https://skytravel-server.herokuapp.com")
                 .addConverterFactory(GsonConverterFactory.create()).build();
 
         //Get text view
@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
 
                         @Override
                         public void onFailure(Call<List<Airport>> call, Throwable t) {
-                            Log.e("failure", "search failed");
+                            Log.e("failure", "search failed, " + t.getMessage());
                         }
                     });
 
