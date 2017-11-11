@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private ListView mListViewResultDisplay;
     private EditText mEditTextSearchQuery;
     private ArrayAdapter mAdapter;
-    private List<Airport> resultArray;
+    private List<String> resultArray;
     private Retrofit retrofit;
 
     @Override
@@ -71,7 +71,10 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onResponse(Call<List<Airport>> call, Response<List<Airport>> response) {
                             List<Airport> airports = response.body();
-                            resultArray = airports;
+                            resultArray.clear();
+                            for(int i = 0; i < airports.size(); i++) {
+                                resultArray.add(airports.get(i).getPlaceName());
+                            }
                             mAdapter.notifyDataSetChanged();
                         }
 
@@ -85,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        resultArray = new ArrayList<>();
+        resultArray = new ArrayList<String>();
 
         mAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, resultArray);
         mListViewResultDisplay.setAdapter(mAdapter);
