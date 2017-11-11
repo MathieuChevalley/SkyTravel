@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">SkyTravel</string>
-    <string name="mListViewSearchResult">SearchResults</string>
+
+    <string name="budgetTitle">Your budget</string>
+    <string name="lengthTitle">Duration of a flight</string>
+    <string name="priceTitle">Maximum price of a flight</string>
 </resources>

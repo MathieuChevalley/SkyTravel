@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditTextPreference
+        android:key="budget"
+        android:title="@string/budgetTitle"
+        android:defaultValue="500"></EditTextPreference>
+
+    <EditTextPreference
+        android:key="length"
+        android:title="@string/lengthTitle"
+        android:defaultValue="2"></EditTextPreference>
+
+    <EditTextPreference
+        android:key="price"
+        android:title="@string/priceTitle"
+        android:defaultValue="100"></EditTextPreference>
+
+</PreferenceScreen>
