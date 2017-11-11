@@ -17,4 +17,10 @@ public interface API {
 
     @GET("/airports/search/{name}")
     Call<List<Airport>> getAirports(@Path("name") String s);
+
+    @GET()
+    Call<ServerResponse> getSuggestions();
+
+    //@GET()
+    //Call<List<Flight>> getFlights();
 }

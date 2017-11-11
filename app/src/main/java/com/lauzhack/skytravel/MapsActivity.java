@@ -1,5 +1,8 @@
 package com.lauzhack.skytravel;
 
+import android.content.SharedPreferences;
+import android.preference.Preference;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 
@@ -8,17 +11,27 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.lauzhack.skytravel.utils.Airport;
+import com.lauzhack.skytravel.utils.Departure;
+import com.lauzhack.skytravel.utils.Suggestions;
 
 import java.util.List;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
+        SharedPreferences.OnSharedPreferenceChangeListener, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap mMap;
-    private List<Airport> nextAirports;
-    private List<Airport> visitedAirports;
+    private List<Suggestions> nextAirports;
+    private Departure current;
+    private List<Departure> visitedAirports;
     private int totalPrice = 0;
+
+
+
+    private SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +41,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+
+
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPreferences.registerOnSharedPreferenceChangeListener(this);
     }
 
 
@@ -44,10 +62,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        mMap.setOnMarkerClickListener(this);
     }
 
     public void updatePointsToDisplay() {
@@ -55,8 +70,57 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void displayAirports() {
-        for (Airport airport: nextAirports) {
-            mMap.addMarker(new MarkerOptions().position(new LatLng(airport.get)))
+
+        mMap.clear();
+
+        String[] latlongDeparture = current.getLocation().split(",");
+        LatLng departure = new LatLng(Double.parseDouble(latlongDeparture[0]),
+                Double.parseDouble(latlongDeparture[1]));
+        for (int i = 0; i < nextAirports.size(); i++) {
+            Suggestions airport = nextAirports.get(i);
+            String[] latlng = airport.getLocation().split(",");
+            LatLng location = new LatLng(Double.parseDouble(latlng[0]), Double.parseDouble(latlng[1]));
+            mMap.addMarker(new MarkerOptions().position(location).title(airport.getName())).setTag(i);
+
+            mMap.addPolyline(new PolylineOptions().add(departure, location)
+            .geodesic(true));
+
         }
+
+        for (int i = 0; i < visitedAirports.size() - 1; i++) {
+            Departure fromAirport = visitedAirports.get(i);
+            Departure toAirport = visitedAirports.get(i + 1);
+
+            String[] latlongFrom = fromAirport.getLocation().split(",");
+            String[] latlongTo = toAirport.getLocation().split(",");
+
+            LatLng from = new LatLng(Double.parseDouble(latlongFrom[0]), Double.parseDouble(latlongFrom[1]));
+            LatLng to = new LatLng(Double.parseDouble(latlongTo[0]), Double.parseDouble(latlongTo[1]));
+
+
+            mMap.addPolyline(new PolylineOptions().add(from, to)
+                    .geodesic(true));
+        }
+
+
+    }
+
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        this.sharedPreferences = sharedPreferences;
+        updatePointsToDisplay();
+        displayAirports();
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        Suggestions destinationToQuery = nextAirports.get((int) marker.getTag());
+
+        return false;
+    }
+
+    public void showFlights() {
+
     }
 }
