@@ -92,24 +92,24 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        resultArray = new ArrayList<String>();
+        resultArray = new ArrayList<>();
 
         mAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, resultArray);
         mListViewResultDisplay.setAdapter(mAdapter);
 
 
 
-       /* mListViewResultDisplay.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mListViewResultDisplay.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String item = resultArray[position];
+                String item = resultArray.get(position);
 
-                Intent intent = new Intent(Activity.this,);
-                intent
+                Intent intent = new Intent(MainActivity.this, MapsActivity.class);
+                intent.putExtra(Intent.EXTRA_TEXT, item);
                 //based on item add info to intent
                 startActivity(intent);
             }
-        });*/
+        });
 
 
     }
