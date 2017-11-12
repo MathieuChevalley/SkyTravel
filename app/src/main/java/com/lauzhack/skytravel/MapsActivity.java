@@ -302,10 +302,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onResponse(Call<ServerResponse> call, Response<ServerResponse> response) {
                 ServerResponse serverResponse = response.body();
 
-                if (current != null) {
-                    visitedAirports.add(current);
-                }
+
                 current = serverResponse.getDeparture();
+                visitedAirports.add(current);
 
                 Log.i("suggestions length", ""+serverResponse.getSuggestions().size());
                 nextAirports = serverResponse.getSuggestions();
