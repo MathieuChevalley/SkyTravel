@@ -27,7 +27,7 @@ public interface API {
     @GET("/session")
     Call<List<Flight>> getFlights(@Query("maxPrice") String maxPrice,
                                   @Query("maxDuration") String maxDuration,
-                                  @Query("departureid") String origin,
-                                  @Query("destinationid") String destination,
-                                  @Query("dataDep") String outBound);
+                                  @Query("departureId") String origin,
+                                  @Query("destinationId") String destination,
+                                  @Query("dateDep") String outBound);
 }
