@@ -48,29 +48,30 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Departure current;
     private List<Departure> visitedAirports = new ArrayList<>();
     private int totalPrice = 0;
+    private List<Integer> priceHistory = new ArrayList<>();
 
     private List<Flight> flights = new ArrayList<>();
 
     private Retrofit retrofit;
 
-    private Date currentDate = new Date();
 
     private String firstDeparture;
+    private String dateDeparture;
 
     private SharedPreferences sharedPreferences;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        firstDeparture = this.getIntent().getStringExtra(Intent.EXTRA_TEXT);
+        Bundle extras = this.getIntent().getExtras();
+        firstDeparture = extras.getString("EXTRA_ITEM");
+        dateDeparture = extras.getString("EXTRA_DATE");
         setContentView(R.layout.activity_maps);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
-        Calendar cal = Calendar.getInstance();
-        currentDate = cal.getTime();
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
@@ -120,13 +121,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         else {
             departure = firstDeparture;
         }
-        String date = ft.format(currentDate);
+
+
         String duration = sharedPreferences.getString("length", "120");
         String maxPrice = sharedPreferences.getString("price", "1000");
-        Log.i("Query", departure + date + duration + maxPrice);
+        Log.i("Query", departure + dateDeparture + duration + maxPrice);
 
 
-        Call<ServerResponse> apiCall = api.getSuggestions(departure, date, duration, maxPrice);
+        Call<ServerResponse> apiCall = api.getSuggestions(departure, dateDeparture, duration, maxPrice);
 
         apiCall.enqueue(new Callback<ServerResponse>() {
             @Override
@@ -165,7 +167,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             LatLng location = new LatLng(Double.parseDouble(latlng[1]), Double.parseDouble(latlng[0]));
             mMap.addMarker(new MarkerOptions().position(location).title(airport.getName())).setTag(i);
 
-            mMap.addPolyline(new PolylineOptions().add(departure, location).width(0.5f)
+            mMap.addPolyline(new PolylineOptions().add(departure, location).width(4f)
             .geodesic(true));
 
         }
@@ -199,33 +201,34 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public boolean onMarkerClick(Marker marker) {
         Suggestions destinationToQuery = nextAirports.get((int) marker.getTag());
+        Log.i("destination To query", destinationToQuery.toString());
         API api = retrofit.create(API.class);
-        current = new Departure(destinationToQuery.getName(), destinationToQuery.getCityId(),
-                destinationToQuery.getCountryId(), destinationToQuery.getLocation(), destinationToQuery.getId());
-        String maxPrice = sharedPreferences.getString("price", "500");
+                String maxPrice = sharedPreferences.getString("price", "500");
         String duration = sharedPreferences.getString("length", "120");
+
         String destination = destinationToQuery.getCityId();
         String origin = current.getCityId();
-        SimpleDateFormat ft =
-                new SimpleDateFormat("yyyy-MM-dd");
-        String outbound = ft.format(currentDate);
 
-        Call<List<Flight>> apiCall = api.getFlights(maxPrice, duration, origin, destination, outbound);
+
+        Call<List<Flight>> apiCall = api.getFlights(maxPrice, duration, origin, destination, dateDeparture);
 
         apiCall.enqueue(new Callback<List<Flight>>() {
 
             @Override
             public void onResponse(Call<List<Flight>> call, Response<List<Flight>> response) {
+                Log.i("show flight", "on");
                 showFlights(response.body());
                 updatePointsToDisplay();
             }
 
             @Override
             public void onFailure(Call<List<Flight>> call, Throwable t) {
-
+                Log.e("failure", "query failure " + t.getMessage() );
             }
         });
 
+        current = new Departure(destinationToQuery.getName(), destinationToQuery.getCityId(),
+                destinationToQuery.getCountryId(), destinationToQuery.getLocation(), destinationToQuery.getId());
 
         return true;
     }
@@ -237,16 +240,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         String[] proposedFlights = new String[proposed.size()];
 
         for (int i = 0; i < proposed.size(); i++) {
-            proposedFlights[i] = proposed.get(i).getCarrier();
+            proposedFlights[i] = proposed.get(i).getCarrier() + " " + proposed.get(i).getPrice();
         }
         alertDialogBuilder.setItems(proposedFlights, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 flights.add(proposed.get(which));
+                priceHistory.add(totalPrice);
                 totalPrice += Integer.parseInt(proposed.get(which).getPrice());
+
+                finish();
             }
 
         });
 
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
+
+    }
+
+    public void onBackClicked() {
+        current = visitedAirports.remove(visitedAirports.size() - 1);
+        totalPrice = priceHistory.remove(priceHistory.size() - 1);
+        updatePointsToDisplay();
     }
 }
