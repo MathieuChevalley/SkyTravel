@@ -59,7 +59,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private String dateDeparture;
 
     private SharedPreferences sharedPreferences;
-    private API api;
 
 
     @Override
@@ -99,22 +98,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-        interceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
+        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
         OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
         retrofit = new Retrofit.Builder().baseUrl("https://skytravel-server.herokuapp.com")
                 .client(client)
                 .addConverterFactory(GsonConverterFactory.create()).build();
-        api = retrofit.create(API.class);
 
         updatePointsToDisplay();
-
 
         mMap.setOnMarkerClickListener(this);
 
     }
 
     public void updatePointsToDisplay() {
-
+        API api = retrofit.create(API.class);
         SimpleDateFormat ft =
                 new SimpleDateFormat("yyyy-MM-dd");
         String departure = "";
@@ -203,16 +200,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public boolean onMarkerClick(Marker marker) {
-
-        final Suggestions destinationToQuery = nextAirports.get((int) marker.getTag());
+        Suggestions destinationToQuery = nextAirports.get((int) marker.getTag());
         Log.i("destination To query", destinationToQuery.toString());
-
-        String maxPrice = sharedPreferences.getString("price", "500");
+        API api = retrofit.create(API.class);
+                String maxPrice = sharedPreferences.getString("price", "500");
         String duration = sharedPreferences.getString("length", "120");
 
-        String destination = destinationToQuery.getId();
-        Log.i("current", current.toString());
-        String origin = current.getId();
+        String destination = destinationToQuery.getCityId();
+        String origin = current.getCityId();
 
 
         Call<List<Flight>> apiCall = api.getFlights(maxPrice, duration, origin, destination, dateDeparture);
@@ -223,9 +218,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onResponse(Call<List<Flight>> call, Response<List<Flight>> response) {
                 Log.i("show flight", "on");
                 showFlights(response.body());
-                current = new Departure(destinationToQuery.getName(), destinationToQuery.getCityId(),
-                        destinationToQuery.getCountryId(), destinationToQuery.getLocation(), destinationToQuery.getId());
-
                 updatePointsToDisplay();
             }
 
@@ -235,6 +227,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
+        current = new Departure(destinationToQuery.getName(), destinationToQuery.getCityId(),
+                destinationToQuery.getCountryId(), destinationToQuery.getLocation(), destinationToQuery.getId());
 
         return true;
     }
@@ -248,8 +242,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         for (int i = 0; i < proposed.size(); i++) {
             proposedFlights[i] = proposed.get(i).getCarrier() + " " + proposed.get(i).getPrice();
         }
-        Log.i("flights", (proposedFlights)[0] + " " + proposedFlights[1]);
-
         alertDialogBuilder.setItems(proposedFlights, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
