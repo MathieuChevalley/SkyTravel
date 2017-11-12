@@ -206,8 +206,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 String maxPrice = sharedPreferences.getString("price", "500");
         String duration = sharedPreferences.getString("length", "120");
 
-        String destination = destinationToQuery.getCityId();
-        String origin = current.getCityId();
+        String destination = destinationToQuery.getId();
+        String origin = current.getId();
 
 
         Call<List<Flight>> apiCall = api.getFlights(maxPrice, duration, origin, destination, dateDeparture);
