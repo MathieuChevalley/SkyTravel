@@ -11,6 +11,6 @@
         android:id="@+id/menu_history"
         android:title="History"
         android:icon="@android:drawable/btn_minus"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="ifRoom"></item>
 
 </menu>

@@ -116,6 +116,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setActionBar(toolbar);
         setTitle(sharedPreferences.getString("budget", "500"));
         toolbar.setTitleTextColor(Color.GREEN);
+
     }
 
     @Override
@@ -216,13 +217,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             };
             Calendar previousCal = Calendar.getInstance();
-            Log.i("last flight departure time", flights.get(flights.size()-1).getDepartureTime());
+            Log.i("lastflightdeparturetime", flights.get(flights.size()-1).getDepartureTime());
             String[] dateArray = flights.get(flights.size()-1).getDepartureTime().split("T")[0].split("-");
-            Log.i("last flight departure time", dateArray[0]);
+            Log.i("lastflightdeparturetime", dateArray[0]);
             previousCal.set(Calendar.YEAR, Integer.parseInt(dateArray[0]));
-            Log.i("last flight departure time", dateArray[1]);
+            Log.i("lastflightdeparturetime", dateArray[1]);
             previousCal.set(Calendar.MONTH, Integer.parseInt(dateArray[1]));
-            Log.i("last flight departure time", dateArray[2]);
+            Log.i("lastflightdeparturetime", dateArray[2]);
             previousCal.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dateArray[2]) + 1);
 
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
@@ -271,6 +272,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
 
             for (int i = 0; i < visitedAirports.size() - 1; i++) {
+                Log.i("draw red", "");
                 Departure fromAirport = visitedAirports.get(i);
                 Departure toAirport = visitedAirports.get(i + 1);
 
@@ -361,11 +363,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if(response.body() != null) {
                     showFlights(response.body());
                 }
-                if (lastCurrent == current) {
+                if (lastCurrent == current && current != null) {
                     current = new Departure(destinationToQuery.getName(), destinationToQuery.getCityId(),
                             destinationToQuery.getCountryId(), destinationToQuery.getLocation(), destinationToQuery.getId());
                     progressDialog.dismiss();
                 }
+                visitedAirports.add(lastCurrent);
 
             }
 
@@ -373,7 +376,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onFailure(Call<List<Flight>> call, Throwable t) {
                 Log.e("failure", "query failure " + t.getMessage() );
                 progressDialog.dismiss();
-                getSuggestionsAsync(destinationToQuery, api, maxPrice, duration, destination, origin);
+                //getSuggestionsAsync(destinationToQuery, api, maxPrice, duration, destination, origin);
             }
         });
     }
@@ -440,11 +443,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void onBackClicked() {
-        current = visitedAirports.remove(visitedAirports.size() - 1);
+        visitedAirports.remove(visitedAirports.size() - 1);
+        if(visitedAirports.isEmpty()) {
+            current = null;
+        }
+        else {
+            current = visitedAirports.get(visitedAirports.size() - 1);
+        }
         totalPrice = priceHistory.remove(priceHistory.size() - 1);
+        flights.remove(flights.size() - 1);
         if (visitedAirports.isEmpty()) {
             buttonBack.setVisibility(View.INVISIBLE);
         }
+        firstTimeInMethod = true;
+        Log.i("go Back", current.toString());
         updatePointsToDisplay();
     }
 }
