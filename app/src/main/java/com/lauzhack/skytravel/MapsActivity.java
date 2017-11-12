@@ -101,8 +101,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
         interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
         OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor)
-                .readTimeout(10, TimeUnit.SECONDS)
-                .connectTimeout(10, TimeUnit.SECONDS).build();
+                .readTimeout(20, TimeUnit.SECONDS)
+                .connectTimeout(20, TimeUnit.SECONDS).build();
         retrofit = new Retrofit.Builder().baseUrl("https://skytravel-server.herokuapp.com")
                 .client(client)
                 .addConverterFactory(GsonConverterFactory.create()).build();
@@ -202,7 +202,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public boolean onMarkerClick(Marker marker) {
-        Suggestions destinationToQuery = nextAirports.get((int) marker.getTag());
+        final Suggestions destinationToQuery = nextAirports.get((int) marker.getTag());
         Log.i("destination To query", destinationToQuery.toString());
         API api = retrofit.create(API.class);
                 String maxPrice = sharedPreferences.getString("price", "500");
@@ -211,6 +211,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         String destination = destinationToQuery.getId();
         String origin = current.getId();
 
+        Log.i("current To query", current.toString());
 
         Call<List<Flight>> apiCall = api.getFlights(maxPrice, duration, origin, destination, dateDeparture);
 
@@ -221,8 +222,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Log.i("show flight", "on");
                 if(response.body() != null) {
                     showFlights(response.body());
-                    updatePointsToDisplay();
                 }
+                current = new Departure(destinationToQuery.getName(), destinationToQuery.getCityId(),
+                        destinationToQuery.getCountryId(), destinationToQuery.getLocation(), destinationToQuery.getId());
+                updatePointsToDisplay();
             }
 
             @Override
@@ -231,8 +234,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
-        current = new Departure(destinationToQuery.getName(), destinationToQuery.getCityId(),
-                destinationToQuery.getCountryId(), destinationToQuery.getLocation(), destinationToQuery.getId());
+
 
         return true;
     }
