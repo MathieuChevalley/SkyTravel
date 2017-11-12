@@ -137,6 +137,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
 
+        departure = departure.replaceAll(" ", "");
         String duration = sharedPreferences.getString("length", "120");
         String maxPrice = sharedPreferences.getString("price", "1000");
         Log.i("Query", departure + dateDeparture + duration + maxPrice);
@@ -275,6 +276,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 flights.add(proposed.get(which));
                 priceHistory.add(totalPrice);
                 totalPrice += Double.parseDouble(proposed.get(which).getPrice());
+                dateDeparture = proposed.get(which).getArrivalTime();
                 if (buttonBack.getVisibility() == View.INVISIBLE) {
                     buttonBack.setVisibility(View.VISIBLE);
                 }
