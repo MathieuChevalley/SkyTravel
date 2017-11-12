@@ -14,11 +14,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toolbar;
 
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -115,7 +117,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         Log.i("ok", "oj");
         mMap = googleMap;
-
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
         interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
@@ -181,17 +183,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng departure = new LatLng(Double.parseDouble(latlongDeparture[1]),
                 Double.parseDouble(latlongDeparture[0]));
         Log.i("goingtoaddmarker", "go" + nextAirports.size());
+        LatLngBounds.Builder bounds = LatLngBounds.builder();
         for (int i = 0; i < nextAirports.size(); i++) {
             Suggestions airport = nextAirports.get(i);
             String[] latlng = airport.getLocation().split(",");
             Log.i("addMarker", latlng[1] + "," + latlng[0]);
             LatLng location = new LatLng(Double.parseDouble(latlng[1]), Double.parseDouble(latlng[0]));
             mMap.addMarker(new MarkerOptions().position(location).title(airport.getName())).setTag(i);
+            bounds.include(location);
 
             mMap.addPolyline(new PolylineOptions().add(departure, location).width(4f)
             .geodesic(true));
 
         }
+
+        CameraUpdate updateFactory = CameraUpdateFactory.newLatLngBounds(bounds.build(), 16);
+        mMap.animateCamera(updateFactory);
 
         for (int i = 0; i < visitedAirports.size() - 1; i++) {
             Departure fromAirport = visitedAirports.get(i);
