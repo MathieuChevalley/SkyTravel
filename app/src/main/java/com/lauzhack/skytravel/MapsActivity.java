@@ -12,16 +12,21 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.ProgressBar;
 
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -78,6 +83,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private API api;
 
 
+    private Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,11 +101,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
 
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitleTextColor(Color.WHITE);
         buttonBack = (Button) findViewById(R.id.buttonback);
 
-
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setActionBar(toolbar);
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.settings:
+                // open settings
+                startActivity(new Intent(this, Settings.class));
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
 
     /**
      * Manipulates the map once available.
@@ -114,7 +140,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         Log.i("ok", "oj");
         mMap = googleMap;
-
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
         interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
@@ -182,17 +208,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng departure = new LatLng(Double.parseDouble(latlongDeparture[1]),
                 Double.parseDouble(latlongDeparture[0]));
         Log.i("goingtoaddmarker", "go" + nextAirports.size());
+        LatLngBounds.Builder bounds = LatLngBounds.builder();
         for (int i = 0; i < nextAirports.size(); i++) {
             Suggestions airport = nextAirports.get(i);
             String[] latlng = airport.getLocation().split(",");
             Log.i("addMarker", latlng[1] + "," + latlng[0]);
             LatLng location = new LatLng(Double.parseDouble(latlng[1]), Double.parseDouble(latlng[0]));
             mMap.addMarker(new MarkerOptions().position(location).title(airport.getName())).setTag(i);
+            bounds.include(location);
 
             mMap.addPolyline(new PolylineOptions().add(departure, location).width(4f)
             .geodesic(true));
 
         }
+
+        CameraUpdate updateFactory = CameraUpdateFactory.newLatLngBounds(bounds.build(), 16);
+        mMap.animateCamera(updateFactory);
 
         for (int i = 0; i < visitedAirports.size() - 1; i++) {
             Departure fromAirport = visitedAirports.get(i);
@@ -298,7 +329,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void showFlights(final List<Flight> proposed) {
 
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-        alertDialogBuilder.setTitle("Choose a flight");
+        if (proposed.isEmpty()) {
+            alertDialogBuilder.setTitle("Sorry, no flights are availble from this point");
+        } else {
+            alertDialogBuilder.setTitle("Choose a flight");
+        }
         String[] proposedFlights = new String[proposed.size()];
 
         for (int i = 0; i < proposed.size(); i++) {
@@ -321,6 +356,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         onBackClicked();
                     }
                 });
+                double cost = Integer.parseInt(sharedPreferences.getString("budget", "0")) - totalPrice;
+                setTitle(Double.toString(cost));
+                if (cost < 0) {
+                    toolbar.setTitleTextColor(Color.RED);
+                } else {
+                    toolbar.setTitleTextColor(Color.GREEN);
+                }
+
                 if(buttonReservation.getVisibility() == View.INVISIBLE){
                     buttonReservation.setVisibility(View.VISIBLE);
                 }
