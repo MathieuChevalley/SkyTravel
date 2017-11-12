@@ -1,5 +1,6 @@
 package com.lauzhack.skytravel;
 
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -47,7 +48,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         SharedPreferences.OnSharedPreferenceChangeListener, GoogleMap.OnMarkerClickListener {
 
-    private ProgressBar mProgressBar;
 
     private GoogleMap mMap;
     private List<Suggestions> nextAirports;
@@ -85,7 +85,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
 
-        mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
 
     }
 
@@ -225,7 +224,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         Call<List<Flight>> apiCall = api.getFlights(maxPrice, duration, origin, destination, dateDeparture);
 
-        mProgressBar.setVisibility(View.VISIBLE);
+        final ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Charging");
+        progressDialog.show();
         apiCall.enqueue(new Callback<List<Flight>>() {
 
             @Override
@@ -238,16 +239,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 current = new Departure(destinationToQuery.getName(), destinationToQuery.getCityId(),
                         destinationToQuery.getCountryId(), destinationToQuery.getLocation(), destinationToQuery.getId());
                 updatePointsToDisplay();
+                progressDialog.dismiss();
 
             }
 
             @Override
             public void onFailure(Call<List<Flight>> call, Throwable t) {
                 Log.e("failure", "query failure " + t.getMessage() );
+                progressDialog.dismiss();
+
             }
         });
 
-        mProgressBar.setVisibility(View.INVISIBLE);
+
 
         return true;
     }
