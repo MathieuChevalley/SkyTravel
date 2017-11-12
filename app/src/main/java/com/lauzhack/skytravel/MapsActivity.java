@@ -243,7 +243,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         });
 
-        alertDialogBuilder.show();
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
 
     }
 }
