@@ -220,8 +220,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             dp.show();
         }
 
-
-
     }
 
     public void displayAirports() {

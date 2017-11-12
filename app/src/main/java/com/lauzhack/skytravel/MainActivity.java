@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
                     apiCall.enqueue(new Callback<List<Airport>>() {
                         @Override
                         public void onResponse(Call<List<Airport>> call, Response<List<Airport>> response) {
-                            if (response.body() == null) {
+                            if (response.body() != null) {
                                 List<Airport> airports = response.body();
                                 resultArray.clear();
                                 for(int i = 0; i < airports.size(); i++) {
