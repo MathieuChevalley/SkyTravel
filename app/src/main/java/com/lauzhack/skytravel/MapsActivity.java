@@ -12,6 +12,7 @@ import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -45,6 +46,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         SharedPreferences.OnSharedPreferenceChangeListener, GoogleMap.OnMarkerClickListener {
+
+    private ProgressBar mProgressBar;
 
     private GoogleMap mMap;
     private List<Suggestions> nextAirports;
@@ -81,6 +84,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
+
+        mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
 
     }
 
@@ -220,6 +225,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         Call<List<Flight>> apiCall = api.getFlights(maxPrice, duration, origin, destination, dateDeparture);
 
+        mProgressBar.setVisibility(View.VISIBLE);
         apiCall.enqueue(new Callback<List<Flight>>() {
 
             @Override
@@ -241,7 +247,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
-
+        mProgressBar.setVisibility(View.INVISIBLE);
 
         return true;
     }
