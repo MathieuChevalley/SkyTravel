@@ -30,6 +30,15 @@
             android:text="@string/MakeReservation"
             android:visibility="invisible"/>
 
+        <Button
+            android:id="@+id/buttonback"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|left"
+            android:layout_marginBottom="20dp"
+            android:text="@string/goback"
+            android:visibility="invisible"/>
+
         </fragment>
 
 
