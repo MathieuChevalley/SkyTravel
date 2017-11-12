@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -118,7 +119,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
         interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-        OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
+        OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor)
+                .readTimeout(10, TimeUnit.SECONDS)
+                .connectTimeout(10, TimeUnit.SECONDS).build();
         retrofit = new Retrofit.Builder().baseUrl("https://skytravel-server.herokuapp.com")
                 .client(client)
                 .addConverterFactory(GsonConverterFactory.create()).build();
@@ -154,10 +157,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onResponse(Call<ServerResponse> call, Response<ServerResponse> response) {
                 ServerResponse serverResponse = response.body();
 
-                if (current != null) {
-                    visitedAirports.add(current);
-                }
                 current = serverResponse.getDeparture();
+                visitedAirports.add(current);
+
 
                 Log.i("suggestions length", ""+serverResponse.getSuggestions().size());
                 nextAirports = serverResponse.getSuggestions();
@@ -202,7 +204,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             LatLng to = new LatLng(Double.parseDouble(latlongTo[1]), Double.parseDouble(latlongTo[0]));
 
 
-            mMap.addPolyline(new PolylineOptions().add(from, to).width(0.5f).color(Color.RED)
+            mMap.addPolyline(new PolylineOptions().add(from, to).width(4f).color(Color.RED)
                     .geodesic(true));
         }
 
@@ -224,8 +226,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 String maxPrice = sharedPreferences.getString("price", "500");
         String duration = sharedPreferences.getString("length", "120");
 
-        String destination = destinationToQuery.getCityId();
-        String origin = current.getCityId();
+        String destination = destinationToQuery.getId();
+        String origin = current.getId();
 
 
         Call<List<Flight>> apiCall = api.getFlights(maxPrice, duration, origin, destination, dateDeparture);
@@ -235,8 +237,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onResponse(Call<List<Flight>> call, Response<List<Flight>> response) {
                 Log.i("show flight", "on");
-                showFlights(response.body());
-                updatePointsToDisplay();
+                if(response.body() != null) {
+                    showFlights(response.body());
+                    updatePointsToDisplay();
+                }
             }
 
             @Override
@@ -254,20 +258,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void showFlights(final List<Flight> proposed) {
 
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-        alertDialogBuilder.setMessage("Choose a flight");
+        alertDialogBuilder.setTitle("Choose a flight");
         String[] proposedFlights = new String[proposed.size()];
 
         for (int i = 0; i < proposed.size(); i++) {
             proposedFlights[i] = proposed.get(i).getCarrier() + " " + proposed.get(i).getPrice();
         }
+
         alertDialogBuilder.setItems(proposedFlights, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 flights.add(proposed.get(which));
                 priceHistory.add(totalPrice);
-                totalPrice += Integer.parseInt(proposed.get(which).getPrice());
+                totalPrice += Double.parseDouble(proposed.get(which).getPrice());
+                dateDeparture = proposed.get(which).getArrivalTime();
 
-                finish();
             }
 
         });
