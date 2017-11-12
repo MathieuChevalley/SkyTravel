@@ -67,6 +67,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private SharedPreferences sharedPreferences;
 
     private Button buttonReservation;
+    private Button buttonBack;
 
 
     @Override
@@ -84,6 +85,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
+
+        buttonBack = (Button) findViewById(R.id.buttonback);
 
 
     }
@@ -272,6 +275,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 flights.add(proposed.get(which));
                 priceHistory.add(totalPrice);
                 totalPrice += Double.parseDouble(proposed.get(which).getPrice());
+                if (buttonBack.getVisibility() == View.INVISIBLE) {
+                    buttonBack.setVisibility(View.VISIBLE);
+                }
+                buttonBack.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        onBackClicked();
+                    }
+                });
                 if(buttonReservation.getVisibility() == View.INVISIBLE){
                     buttonReservation.setVisibility(View.VISIBLE);
                 }
@@ -296,6 +308,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onBackClicked() {
         current = visitedAirports.remove(visitedAirports.size() - 1);
         totalPrice = priceHistory.remove(priceHistory.size() - 1);
+        if (visitedAirports.isEmpty()) {
+            buttonBack.setVisibility(View.INVISIBLE);
+        }
         updatePointsToDisplay();
     }
 }
