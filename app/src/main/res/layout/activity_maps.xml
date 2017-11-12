@@ -1,8 +1,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:map="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_height="match_parent"
     android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:orientation="vertical">
 
     <Toolbar
@@ -13,34 +13,46 @@
         android:elevation="4dp"
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar" />
 
-    <fragment
-        android:id="@+id/map"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context="com.lauzhack.skytravel.MapsActivity"
-        map:mapType="satellite">
+        android:layout_height="match_parent">
 
-        <Button
-            android:id="@+id/buttonReservation"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|center"
-            android:layout_marginBottom="20dp"
-            android:text="@string/MakeReservation"
-            android:visibility="invisible"/>
+        <fragment
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            map:mapType="satellite"
+            tools:context="com.lauzhack.skytravel.MapsActivity">
 
-        <Button
-            android:id="@+id/buttonback"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|left"
-            android:layout_marginBottom="20dp"
-            android:text="@string/goback"
-            android:visibility="invisible"/>
+            <Button
+                android:id="@+id/buttonReservation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center"
+                android:layout_marginBottom="20dp"
+                android:text="@string/MakeReservation"
+                android:visibility="invisible" />
+
+            <Button
+                android:id="@+id/buttonback"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|left"
+                android:layout_marginBottom="20dp"
+                android:text="@string/goback"
+                android:visibility="invisible" />
 
         </fragment>
 
+        <ListView
+            android:id="@+id/history"
+            android:background="@android:color/white"
+            android:visibility="invisible"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+    </RelativeLayout>
 
 
 </LinearLayout>

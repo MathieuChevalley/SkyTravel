@@ -7,4 +7,10 @@
         android:icon="@android:drawable/ic_menu_preferences"
         app:showAsAction="always"></item>
 
+    <item
+        android:id="@+id/menu_history"
+        android:title="History"
+        android:icon="@android:drawable/btn_minus"
+        app:showAsAction="ifRoom"/>
+
 </menu>

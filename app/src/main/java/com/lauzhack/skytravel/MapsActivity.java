@@ -14,11 +14,14 @@ import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.ProgressBar;
+import android.widget.ViewFlipper;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -86,6 +89,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     private Toolbar toolbar;
+    private ListView history;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,6 +110,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitleTextColor(Color.WHITE);
         buttonBack = (Button) findViewById(R.id.buttonback);
+        history = (ListView) findViewById(R.id.history);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setActionBar(toolbar);
@@ -125,6 +130,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             case R.id.settings:
                 // open settings
                 startActivity(new Intent(this, Settings.class));
+                return true;
+            case R.id.menu_history:
+                // toggle views in view flipper
+                if (history.getVisibility() == View.INVISIBLE) {
+                    history.setVisibility(View.VISIBLE);
+                    String[] strings =  new String[flights.size()];
+                    for (int i = 0; i < flights.size(); i++) {
+                        Flight f = flights.get(i);
+                        strings[i] = f.getCarrier() + ", " + f.getDepartureTime() + " - " + f.getArrivalTime();
+                    }
+                    ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, strings);
+                    history.setAdapter(adapter);
+                } else {
+                    history.setVisibility(View.INVISIBLE);
+                }
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -224,46 +244,49 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void displayAirports() {
 
-        mMap.clear();
+        if (!nextAirports.isEmpty()) {
+            mMap.clear();
 
-        String[] latlongDeparture = current.getLocation().split(",");
-        LatLng departure = new LatLng(Double.parseDouble(latlongDeparture[1]),
-                Double.parseDouble(latlongDeparture[0]));
-        Log.i("goingtoaddmarker", "go" + nextAirports.size());
-        LatLngBounds.Builder bounds = LatLngBounds.builder();
-        for (int i = 0; i < nextAirports.size(); i++) {
-            Suggestions airport = nextAirports.get(i);
-            String[] latlng = airport.getLocation().split(",");
-            Log.i("addMarker", latlng[1] + "," + latlng[0]);
-            LatLng location = new LatLng(Double.parseDouble(latlng[1]), Double.parseDouble(latlng[0]));
-            mMap.addMarker(new MarkerOptions().position(location).title(airport.getName())).setTag(i);
-            bounds.include(location);
+            String[] latlongDeparture = current.getLocation().split(",");
+            LatLng departure = new LatLng(Double.parseDouble(latlongDeparture[1]),
+                    Double.parseDouble(latlongDeparture[0]));
+            Log.i("goingtoaddmarker", "go" + nextAirports.size());
+            LatLngBounds.Builder bounds = LatLngBounds.builder();
+            for (int i = 0; i < nextAirports.size(); i++) {
+                Suggestions airport = nextAirports.get(i);
+                String[] latlng = airport.getLocation().split(",");
+                Log.i("addMarker", latlng[1] + "," + latlng[0]);
+                LatLng location = new LatLng(Double.parseDouble(latlng[1]), Double.parseDouble(latlng[0]));
+                mMap.addMarker(new MarkerOptions().position(location).title(airport.getName())).setTag(i);
+                bounds.include(location);
 
-            mMap.addPolyline(new PolylineOptions().add(departure, location).width(4f)
-            .geodesic(true));
+                mMap.addPolyline(new PolylineOptions().add(departure, location).width(4f)
+                .geodesic(true));
+
+            }
+
+            if (nextAirports.size() > 1) {
+                CameraUpdate updateFactory = CameraUpdateFactory.newLatLngBounds(bounds.build(), 16);
+                mMap.animateCamera(updateFactory);
+            }
+
+            for (int i = 0; i < visitedAirports.size() - 1; i++) {
+                Departure fromAirport = visitedAirports.get(i);
+                Departure toAirport = visitedAirports.get(i + 1);
+
+                String[] latlongFrom = fromAirport.getLocation().split(",");
+                String[] latlongTo = toAirport.getLocation().split(",");
+
+                LatLng from = new LatLng(Double.parseDouble(latlongFrom[1]), Double.parseDouble(latlongFrom[0]));
+                LatLng to = new LatLng(Double.parseDouble(latlongTo[1]), Double.parseDouble(latlongTo[0]));
+
+
+                mMap.addPolyline(new PolylineOptions().add(from, to).width(4f).color(Color.RED)
+                        .geodesic(true));
+            }
+
 
         }
-
-        if (nextAirports.size() > 1) {
-            CameraUpdate updateFactory = CameraUpdateFactory.newLatLngBounds(bounds.build(), 16);
-            mMap.animateCamera(updateFactory);
-        }
-
-        for (int i = 0; i < visitedAirports.size() - 1; i++) {
-            Departure fromAirport = visitedAirports.get(i);
-            Departure toAirport = visitedAirports.get(i + 1);
-
-            String[] latlongFrom = fromAirport.getLocation().split(",");
-            String[] latlongTo = toAirport.getLocation().split(",");
-
-            LatLng from = new LatLng(Double.parseDouble(latlongFrom[1]), Double.parseDouble(latlongFrom[0]));
-            LatLng to = new LatLng(Double.parseDouble(latlongTo[1]), Double.parseDouble(latlongTo[0]));
-
-
-            mMap.addPolyline(new PolylineOptions().add(from, to).width(4f).color(Color.RED)
-                    .geodesic(true));
-        }
-
 
     }
 
