@@ -248,7 +248,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onClick(DialogInterface dialog, int which) {
                 flights.add(proposed.get(which));
                 priceHistory.add(totalPrice);
-                totalPrice += Integer.parseInt(proposed.get(which).getPrice());
+                totalPrice += Double.parseDouble(proposed.get(which).getPrice());
 
             }
 
