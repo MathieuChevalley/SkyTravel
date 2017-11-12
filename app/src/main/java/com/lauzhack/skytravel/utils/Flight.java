@@ -1,10 +1,12 @@
 package com.lauzhack.skytravel.utils;
 
+import java.io.Serializable;
+
 /**
  * Created by math on 12.11.2017.
  */
 
-public class Flight {
+public class Flight implements Serializable{
     private String duration;
 
     private String price;
