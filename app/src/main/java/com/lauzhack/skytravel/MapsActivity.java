@@ -1,6 +1,7 @@
 package com.lauzhack.skytravel;
 
 import android.app.DatePickerDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -49,7 +50,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         SharedPreferences.OnSharedPreferenceChangeListener, GoogleMap.OnMarkerClickListener {
 
-    private ProgressBar mProgressBar;
 
     private GoogleMap mMap;
     private List<Suggestions> nextAirports;
@@ -70,6 +70,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private SharedPreferences sharedPreferences;
     private Calendar cal;
+    private Button buttonBack;
+
 
     private Button buttonReservation;
     private boolean firstTimeInMethod = true;
@@ -93,7 +95,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
 
-        mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
+        buttonBack = (Button) findViewById(R.id.buttonback);
+
 
     }
 
@@ -259,7 +262,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         Call<List<Flight>> apiCall = api.getFlights(maxPrice, duration, origin, destination, dateDeparture);
 
-        mProgressBar.setVisibility(View.VISIBLE);
+        final ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Charging");
+        progressDialog.show();
         apiCall.enqueue(new Callback<List<Flight>>() {
 
             @Override
@@ -271,15 +276,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
                 current = new Departure(destinationToQuery.getName(), destinationToQuery.getCityId(),
                         destinationToQuery.getCountryId(), destinationToQuery.getLocation(), destinationToQuery.getId());
+                progressDialog.dismiss();
+
             }
 
             @Override
             public void onFailure(Call<List<Flight>> call, Throwable t) {
                 Log.e("failure", "query failure " + t.getMessage() );
+                progressDialog.dismiss();
+
             }
         });
 
-        mProgressBar.setVisibility(View.INVISIBLE);
+
 
         return true;
     }
@@ -300,6 +309,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 flights.add(proposed.get(which));
                 priceHistory.add(totalPrice);
                 totalPrice += Double.parseDouble(proposed.get(which).getPrice());
+                dateDeparture = proposed.get(which).getArrivalTime();
+                if (buttonBack.getVisibility() == View.INVISIBLE) {
+                    buttonBack.setVisibility(View.VISIBLE);
+                }
+                buttonBack.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        onBackClicked();
+                    }
+                });
                 if(buttonReservation.getVisibility() == View.INVISIBLE){
                     buttonReservation.setVisibility(View.VISIBLE);
                 }
@@ -326,6 +345,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onBackClicked() {
         current = visitedAirports.remove(visitedAirports.size() - 1);
         totalPrice = priceHistory.remove(priceHistory.size() - 1);
+        if (visitedAirports.isEmpty()) {
+            buttonBack.setVisibility(View.INVISIBLE);
+        }
         updatePointsToDisplay();
     }
 }

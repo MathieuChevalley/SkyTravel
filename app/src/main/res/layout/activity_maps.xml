@@ -13,12 +13,6 @@
         android:elevation="4dp"
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar" />
 
-    <ProgressBar
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/progressBar"
-        android:visibility="invisible"/>
-
     <fragment
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
@@ -34,6 +28,15 @@
             android:layout_gravity="bottom|center"
             android:layout_marginBottom="20dp"
             android:text="@string/MakeReservation"
+            android:visibility="invisible"/>
+
+        <Button
+            android:id="@+id/buttonback"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|left"
+            android:layout_marginBottom="20dp"
+            android:text="@string/goback"
             android:visibility="invisible"/>
 
         </fragment>
