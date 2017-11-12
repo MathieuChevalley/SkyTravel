@@ -47,7 +47,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private List<Departure> visitedAirports = new ArrayList<>();
     private int totalPrice = 0;
 
-    private List<Flight> flights;
+    private List<Flight> flights = new ArrayList<>();
 
     private Retrofit retrofit;
 
@@ -193,19 +193,49 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public boolean onMarkerClick(Marker marker) {
         Suggestions destinationToQuery = nextAirports.get((int) marker.getTag());
+        API api = retrofit.create(API.class);
+        String maxPrice = sharedPreferences.getString("price", "500");
+        String duration = sharedPreferences.getString("length", "120");
+        String destination = destinationToQuery.getCityId();
+        String origin = current.getCityId();
+        SimpleDateFormat ft =
+                new SimpleDateFormat("yyyy-MM-dd");
+        String outbound = ft.format(currentDate);
 
-        return false;
+        Call<List<Flight>> apiCall = api.getFlights(maxPrice, duration, origin, destination, outbound);
+
+        apiCall.enqueue(new Callback<List<Flight>>() {
+
+            @Override
+            public void onResponse(Call<List<Flight>> call, Response<List<Flight>> response) {
+                showFlights(response.body());
+            }
+
+            @Override
+            public void onFailure(Call<List<Flight>> call, Throwable t) {
+
+            }
+        });
+
+
+        return true;
     }
 
     public void showFlights(final List<Flight> proposed) {
+
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         alertDialogBuilder.setMessage("Choose a flight");
-        alertDialogBuilder.setItems(flights, new DialogInterface.OnClickListener() {
+        String[] proposedFlights = new String[proposed.size()];
 
+        for (int i = 0; i < proposed.size(); i++) {
+            proposedFlights[i] = proposed.get(i).getCarrier();
+        }
+        alertDialogBuilder.setItems(proposedFlights, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 flights.add(proposed.get(which));
             }
+
         });
 
     }

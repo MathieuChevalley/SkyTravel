@@ -24,6 +24,10 @@ public interface API {
                                         @Path("duration") String duration,
                                         @Path("maxPrice") String maxPrice);
 
-    //@GET()
-    //Call<List<Flight>> getFlights();
+    @GET("/session")
+    Call<List<Flight>> getFlights(@Query("maxPrice") String maxPrice,
+                                  @Query("maxDuration") String maxDuration,
+                                  @Query("originPlace") String origin,
+                                  @Query("destinationPlace") String destination,
+                                  @Query("outBound") String outBound);
 }
