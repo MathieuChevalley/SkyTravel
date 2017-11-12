@@ -194,6 +194,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public boolean onMarkerClick(Marker marker) {
         Suggestions destinationToQuery = nextAirports.get((int) marker.getTag());
         API api = retrofit.create(API.class);
+        current = new Departure(destinationToQuery.getName(), destinationToQuery.getCityId(),
+                destinationToQuery.getCountryId(), destinationToQuery.getLocation(), destinationToQuery.getId());
         String maxPrice = sharedPreferences.getString("price", "500");
         String duration = sharedPreferences.getString("length", "120");
         String destination = destinationToQuery.getCityId();
@@ -209,6 +211,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onResponse(Call<List<Flight>> call, Response<List<Flight>> response) {
                 showFlights(response.body());
+                updatePointsToDisplay();
             }
 
             @Override
@@ -234,6 +237,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 flights.add(proposed.get(which));
+                totalPrice += Integer.parseInt(proposed.get(which).getPrice());
             }
 
         });

@@ -15,6 +15,14 @@ public class Departure {
 
     private String Id;
 
+    public Departure(String n, String cId, String conId, String loc, String id) {
+        Name = n;
+        CityId = cId;
+        CountryId = conId;
+        Location = loc;
+        Id = id;
+    }
+
     public String getName() {
         return Name;
     }
