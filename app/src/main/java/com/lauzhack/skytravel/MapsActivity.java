@@ -10,6 +10,8 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -51,7 +53,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private int totalPrice = 0;
     private List<Integer> priceHistory = new ArrayList<>();
 
-    private List<Flight> flights = new ArrayList<>();
+    private ArrayList<Flight> flights = new ArrayList<>();
 
     private Retrofit retrofit;
 
@@ -61,6 +63,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private SharedPreferences sharedPreferences;
 
+    private Button buttonReservation;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +73,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         firstDeparture = extras.getString("EXTRA_ITEM");
         dateDeparture = extras.getString("EXTRA_DATE");
         setContentView(R.layout.activity_maps);
+        buttonReservation = (Button) findViewById(R.id.buttonReservation);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -76,9 +81,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
-
-
-
 
     }
 
@@ -100,11 +102,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
         interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+
         OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor)
                 .readTimeout(20, TimeUnit.SECONDS)
                 .connectTimeout(20, TimeUnit.SECONDS).build();
+
         retrofit = new Retrofit.Builder().baseUrl("https://skytravel-server.herokuapp.com")
-                .client(client)
+                //.client(client)
                 .addConverterFactory(GsonConverterFactory.create()).build();
 
         updatePointsToDisplay();
@@ -138,9 +142,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onResponse(Call<ServerResponse> call, Response<ServerResponse> response) {
                 ServerResponse serverResponse = response.body();
 
+                if (current != null) {
+                    visitedAirports.add(current);
+                }
                 current = serverResponse.getDeparture();
-                visitedAirports.add(current);
-
 
                 Log.i("suggestions length", ""+serverResponse.getSuggestions().size());
                 nextAirports = serverResponse.getSuggestions();
@@ -220,12 +225,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onResponse(Call<List<Flight>> call, Response<List<Flight>> response) {
                 Log.i("show flight", "on");
+
                 if(response.body() != null) {
                     showFlights(response.body());
                 }
                 current = new Departure(destinationToQuery.getName(), destinationToQuery.getCityId(),
                         destinationToQuery.getCountryId(), destinationToQuery.getLocation(), destinationToQuery.getId());
                 updatePointsToDisplay();
+
             }
 
             @Override
@@ -246,7 +253,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         String[] proposedFlights = new String[proposed.size()];
 
         for (int i = 0; i < proposed.size(); i++) {
-            proposedFlights[i] = proposed.get(i).getCarrier() + " " + proposed.get(i).getPrice();
+            proposedFlights[i] = proposed.get(i).getCarrier() + " " + proposed.get(i).getPrice() + " " + proposed.get(i).getDepartureTime().split("T")[1];
         }
 
         alertDialogBuilder.setItems(proposedFlights, new DialogInterface.OnClickListener() {
@@ -255,7 +262,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 flights.add(proposed.get(which));
                 priceHistory.add(totalPrice);
                 totalPrice += Double.parseDouble(proposed.get(which).getPrice());
-                dateDeparture = proposed.get(which).getArrivalTime();
+                if(buttonReservation.getVisibility() == View.INVISIBLE){
+                    buttonReservation.setVisibility(View.VISIBLE);
+                }
+                buttonReservation.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                    Intent intent = new Intent(MapsActivity.this, BuyActivity.class);
+                    intent.putExtra("flights", flights);
+                    startActivity(intent);
+                    }
+                });
 
             }
 
