@@ -1,11 +1,14 @@
 package com.lauzhack.skytravel;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -19,6 +22,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.lauzhack.skytravel.utils.API;
 import com.lauzhack.skytravel.utils.Airport;
 import com.lauzhack.skytravel.utils.Departure;
+import com.lauzhack.skytravel.utils.Flight;
 import com.lauzhack.skytravel.utils.ServerResponse;
 import com.lauzhack.skytravel.utils.Suggestions;
 
@@ -42,6 +46,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Departure current;
     private List<Departure> visitedAirports = new ArrayList<>();
     private int totalPrice = 0;
+
+    private List<Flight> flights;
 
     private Retrofit retrofit;
 
@@ -153,7 +159,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             LatLng location = new LatLng(Double.parseDouble(latlng[1]), Double.parseDouble(latlng[0]));
             mMap.addMarker(new MarkerOptions().position(location).title(airport.getName())).setTag(i);
 
-            mMap.addPolyline(new PolylineOptions().add(departure, location)
+            mMap.addPolyline(new PolylineOptions().add(departure, location).width(0.5f)
             .geodesic(true));
 
         }
@@ -169,7 +175,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             LatLng to = new LatLng(Double.parseDouble(latlongTo[1]), Double.parseDouble(latlongTo[0]));
 
 
-            mMap.addPolyline(new PolylineOptions().add(from, to).width(0.5f)
+            mMap.addPolyline(new PolylineOptions().add(from, to).width(0.5f).color(Color.RED)
                     .geodesic(true));
         }
 
@@ -191,7 +197,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return false;
     }
 
-    public void showFlights() {
+    public void showFlights(final List<Flight> proposed) {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setMessage("Choose a flight");
+        alertDialogBuilder.setItems(flights, new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                flights.add(proposed.get(which));
+            }
+        });
 
     }
 }
