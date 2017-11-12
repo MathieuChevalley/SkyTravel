@@ -70,7 +70,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private SharedPreferences sharedPreferences;
     private Calendar cal;
-    private Button buttonBack;
+    private Button buttonBack
 
 
     private Button buttonReservation;
