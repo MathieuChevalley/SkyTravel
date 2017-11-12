@@ -107,6 +107,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setActionBar(toolbar);
+        setTitle(sharedPreferences.getString("budget", "500"));
+        toolbar.setTitleTextColor(Color.GREEN);
     }
 
     @Override
@@ -222,8 +224,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         }
 
-        CameraUpdate updateFactory = CameraUpdateFactory.newLatLngBounds(bounds.build(), 16);
-        mMap.animateCamera(updateFactory);
+        if (nextAirports.size() > 1) {
+            CameraUpdate updateFactory = CameraUpdateFactory.newLatLngBounds(bounds.build(), 16);
+            mMap.animateCamera(updateFactory);
+        }
 
         for (int i = 0; i < visitedAirports.size() - 1; i++) {
             Departure fromAirport = visitedAirports.get(i);
@@ -265,7 +269,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             @Override
             public void onFailure(Call<ServerResponse> call, Throwable t) {
-                Log.e("ServerRequest", "no suggestions");
+                Log.e("ServerRequest", "no suggestions " + t.getMessage());
             }
         });
     }
@@ -282,6 +286,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public boolean onMarkerClick(Marker marker) {
         final Suggestions destinationToQuery = nextAirports.get((int) marker.getTag());
         Log.i("destination To query", destinationToQuery.toString());
+        // move camera on click
+        CameraUpdate cu = CameraUpdateFactory.newLatLng(marker.getPosition());
+        mMap.animateCamera(cu);
+
         API api = retrofit.create(API.class);
                 String maxPrice = sharedPreferences.getString("price", "500");
         String duration = sharedPreferences.getString("length", "120");
@@ -291,7 +299,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         Log.i("current To query", current.toString());
 
-        Call<List<Flight>> apiCall = api.getFlights(maxPrice, duration, origin, destination, dateDeparture);
+        getSuggestionsAsync(destinationToQuery, api, maxPrice, duration, destination, origin);
+        return true;
+    }
+
+    private void getSuggestionsAsync(final Suggestions destinationToQuery, final API api, final String maxPrice, final String duration, final String destination, final String origin) {
+        final Call<List<Flight>> apiCall = api.getFlights(maxPrice, duration, origin, destination, dateDeparture);
 
         final ProgressDialog progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Charging");
@@ -315,13 +328,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onFailure(Call<List<Flight>> call, Throwable t) {
                 Log.e("failure", "query failure " + t.getMessage() );
                 progressDialog.dismiss();
-
+                getSuggestionsAsync(destinationToQuery, api, maxPrice, duration, destination, origin);
             }
         });
-
-
-
-        return true;
     }
 
     public void showFlights(final List<Flight> proposed) {
