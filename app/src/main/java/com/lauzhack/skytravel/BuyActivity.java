@@ -2,6 +2,7 @@ package com.lauzhack.skytravel;
 
 import android.app.SearchManager;
 import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -11,6 +12,7 @@ import android.widget.ListView;
 
 import com.lauzhack.skytravel.utils.Flight;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class BuyActivity extends AppCompatActivity {
@@ -23,7 +25,7 @@ public class BuyActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_buy);
 
-        final List<Flight> flights = (List<Flight>) this.getIntent().getSerializableExtra("buy");
+        final ArrayList<Flight> flights = (ArrayList<Flight>) this.getIntent().getSerializableExtra("flights");
 
         mListView = (ListView) findViewById(R.id.listBuy);
 
@@ -37,11 +39,8 @@ public class BuyActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                Flight flight = flights.remove(position);
                mAdapter.notifyDataSetChanged();
-                Intent intent = new Intent(Intent.ACTION_SEARCH);
-                intent.putExtra(SearchManager.QUERY, flight.getTicketLink());
-                if (intent.resolveActivity(getPackageManager()) != null) {
-                    startActivity(intent);
-                }
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(flight.getTicketLink()));
+                startActivity(intent);
 
             }
         });
