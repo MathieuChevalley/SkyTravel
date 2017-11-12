@@ -1,5 +1,6 @@
 package com.lauzhack.skytravel;
 
+import android.app.DatePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -12,6 +13,7 @@ import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.ProgressBar;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -60,13 +62,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private Retrofit retrofit;
 
-
+    private String duration;
+    private String maxPrice;
+    private String departure;
     private String firstDeparture;
     private String dateDeparture;
 
     private SharedPreferences sharedPreferences;
+    private Calendar cal;
 
     private Button buttonReservation;
+    private boolean firstTimeInMethod = true;
+    private API api;
+
 
 
     @Override
@@ -123,10 +131,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void updatePointsToDisplay() {
-        API api = retrofit.create(API.class);
+        api = retrofit.create(API.class);
         SimpleDateFormat ft =
                 new SimpleDateFormat("yyyy-MM-dd");
-        String departure = "";
+        departure = "";
         if (current != null) {
             departure = current.getName();
         }
@@ -134,34 +142,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             departure = firstDeparture;
         }
 
+        duration = sharedPreferences.getString("length", "120");
+        maxPrice = sharedPreferences.getString("price", "1000");
 
-        String duration = sharedPreferences.getString("length", "120");
-        String maxPrice = sharedPreferences.getString("price", "1000");
-        Log.i("Query", departure + dateDeparture + duration + maxPrice);
+        if(firstTimeInMethod){
+            firstTimeInMethod = false;
+            getAllAirportsAvailable(departure,duration,maxPrice,api);
+        } else {
+            //ouvrir le date
+            Log.i("first time in method", firstTimeInMethod+"");
+            cal = Calendar.getInstance();
+            DatePickerDialog.OnDateSetListener date = new DatePickerDialog.OnDateSetListener(){
+                @Override
+                public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth){
+                    cal.set(Calendar.YEAR, year);
+                    cal.set(Calendar.MONTH, monthOfYear);
+                    cal.set(Calendar.DAY_OF_MONTH, dayOfMonth);
 
+                    dateDeparture = new SimpleDateFormat("yyyy-MM-dd").format(cal.getTime());
+                    getAllAirportsAvailable(departure,duration,maxPrice,api);
 
-        Call<ServerResponse> apiCall = api.getSuggestions(departure, dateDeparture, duration, maxPrice);
-
-        apiCall.enqueue(new Callback<ServerResponse>() {
-            @Override
-            public void onResponse(Call<ServerResponse> call, Response<ServerResponse> response) {
-                ServerResponse serverResponse = response.body();
-
-                if (current != null) {
-                    visitedAirports.add(current);
                 }
-                current = serverResponse.getDeparture();
+            };
+            new DatePickerDialog(MapsActivity.this, date, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show();
+        }
 
-                Log.i("suggestions length", ""+serverResponse.getSuggestions().size());
-                nextAirports = serverResponse.getSuggestions();
-                displayAirports();
-            }
 
-            @Override
-            public void onFailure(Call<ServerResponse> call, Throwable t) {
-                Log.e("ServerRequest", "no suggestions");
-            }
-        });
+
     }
 
     public void displayAirports() {
@@ -202,6 +209,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    public void getAllAirportsAvailable(String departure, String duration, String maxPrice, API api){
+        Log.i("Query update", departure + dateDeparture + duration + " " + maxPrice);
+
+        Call<ServerResponse> apiCall = api.getSuggestions(departure, dateDeparture, duration, maxPrice);
+
+        apiCall.enqueue(new Callback<ServerResponse>() {
+            @Override
+            public void onResponse(Call<ServerResponse> call, Response<ServerResponse> response) {
+                ServerResponse serverResponse = response.body();
+
+                if (current != null) {
+                    visitedAirports.add(current);
+                }
+                current = serverResponse.getDeparture();
+
+                Log.i("suggestions length", ""+serverResponse.getSuggestions().size());
+                nextAirports = serverResponse.getSuggestions();
+                displayAirports();
+            }
+
+            @Override
+            public void onFailure(Call<ServerResponse> call, Throwable t) {
+                Log.e("ServerRequest", "no suggestions");
+            }
+        });
+    }
+
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
@@ -237,8 +271,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
                 current = new Departure(destinationToQuery.getName(), destinationToQuery.getCityId(),
                         destinationToQuery.getCountryId(), destinationToQuery.getLocation(), destinationToQuery.getId());
-                updatePointsToDisplay();
-
             }
 
             @Override
@@ -279,6 +311,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     startActivity(intent);
                     }
                 });
+                updatePointsToDisplay();
+
 
             }
 
