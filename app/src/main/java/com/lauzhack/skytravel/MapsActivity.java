@@ -277,7 +277,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void showFlights(final List<Flight> proposed) {
 
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-        alertDialogBuilder.setTitle("Choose a flight");
+        if (proposed.isEmpty()) {
+            alertDialogBuilder.setTitle("Sorry, no flights are availble from this point");
+        } else {
+            alertDialogBuilder.setTitle("Choose a flight");
+        }
         String[] proposedFlights = new String[proposed.size()];
 
         for (int i = 0; i < proposed.size(); i++) {
