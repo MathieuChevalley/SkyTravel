@@ -159,7 +159,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             LatLng location = new LatLng(Double.parseDouble(latlng[1]), Double.parseDouble(latlng[0]));
             mMap.addMarker(new MarkerOptions().position(location).title(airport.getName())).setTag(i);
 
-            mMap.addPolyline(new PolylineOptions().add(departure, location).width(0.5f)
+            mMap.addPolyline(new PolylineOptions().add(departure, location).width(4f)
             .geodesic(true));
 
         }
@@ -193,10 +193,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public boolean onMarkerClick(Marker marker) {
         Suggestions destinationToQuery = nextAirports.get((int) marker.getTag());
+        Log.i("destination To query", destinationToQuery.toString());
         API api = retrofit.create(API.class);
-        current = new Departure(destinationToQuery.getName(), destinationToQuery.getCityId(),
-                destinationToQuery.getCountryId(), destinationToQuery.getLocation(), destinationToQuery.getId());
-        String maxPrice = sharedPreferences.getString("price", "500");
+                String maxPrice = sharedPreferences.getString("price", "500");
         String duration = sharedPreferences.getString("length", "120");
         String destination = destinationToQuery.getCityId();
         String origin = current.getCityId();
@@ -220,6 +219,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
+        current = new Departure(destinationToQuery.getName(), destinationToQuery.getCityId(),
+                destinationToQuery.getCountryId(), destinationToQuery.getLocation(), destinationToQuery.getId());
 
         return true;
     }
@@ -231,7 +232,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         String[] proposedFlights = new String[proposed.size()];
 
         for (int i = 0; i < proposed.size(); i++) {
-            proposedFlights[i] = proposed.get(i).getCarrier();
+            proposedFlights[i] = proposed.get(i).getCarrier() + " " + proposed.get(i).getPrice();
         }
         alertDialogBuilder.setItems(proposedFlights, new DialogInterface.OnClickListener() {
             @Override
@@ -241,6 +242,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
 
         });
+
+        alertDialogBuilder.show();
 
     }
 }
