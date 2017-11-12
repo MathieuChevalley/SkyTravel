@@ -46,6 +46,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Departure current;
     private List<Departure> visitedAirports = new ArrayList<>();
     private int totalPrice = 0;
+    private List<Integer> priceHistory = new ArrayList<>();
 
     private List<Flight> flights = new ArrayList<>();
 
@@ -197,8 +198,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         API api = retrofit.create(API.class);
                 String maxPrice = sharedPreferences.getString("price", "500");
         String duration = sharedPreferences.getString("length", "120");
-        String destination = destinationToQuery.getCityId();
-        String origin = current.getCityId();
+        String destination = destinationToQuery.getId();
+        String origin = current.getId();
         SimpleDateFormat ft =
                 new SimpleDateFormat("yyyy-MM-dd");
         String outbound = ft.format(currentDate);
@@ -209,13 +210,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             @Override
             public void onResponse(Call<List<Flight>> call, Response<List<Flight>> response) {
+                Log.i("show flight", "on");
                 showFlights(response.body());
                 updatePointsToDisplay();
             }
 
             @Override
             public void onFailure(Call<List<Flight>> call, Throwable t) {
-
+                Log.e("failure", "query failure " + t.getMessage() );
             }
         });
 
@@ -238,7 +240,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 flights.add(proposed.get(which));
+                priceHistory.add(totalPrice);
                 totalPrice += Integer.parseInt(proposed.get(which).getPrice());
+
+                finish();
             }
 
         });
@@ -246,5 +251,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         AlertDialog alertDialog = alertDialogBuilder.create();
         alertDialog.show();
 
+    }
+
+    public void onBackClicked() {
+        current = visitedAirports.remove(visitedAirports.size() - 1);
+        totalPrice = priceHistory.remove(priceHistory.size() - 1);
+        updatePointsToDisplay();
     }
 }
