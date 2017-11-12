@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -99,9 +100,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
         interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-        OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
+        OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor)
+                .readTimeout(10, TimeUnit.SECONDS)
+                .connectTimeout(10, TimeUnit.SECONDS).build();
         retrofit = new Retrofit.Builder().baseUrl("https://skytravel-server.herokuapp.com")
-                //.client(client)
+                .client(client)
                 .addConverterFactory(GsonConverterFactory.create()).build();
 
         updatePointsToDisplay();
@@ -135,10 +138,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onResponse(Call<ServerResponse> call, Response<ServerResponse> response) {
                 ServerResponse serverResponse = response.body();
 
-                if (current != null) {
-                    visitedAirports.add(current);
-                }
                 current = serverResponse.getDeparture();
+                visitedAirports.add(current);
+
 
                 Log.i("suggestions length", ""+serverResponse.getSuggestions().size());
                 nextAirports = serverResponse.getSuggestions();
@@ -217,8 +219,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onResponse(Call<List<Flight>> call, Response<List<Flight>> response) {
                 Log.i("show flight", "on");
-                showFlights(response.body());
-                updatePointsToDisplay();
+                if(response.body() != null) {
+                    showFlights(response.body());
+                    updatePointsToDisplay();
+                }
             }
 
             @Override
@@ -249,6 +253,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 flights.add(proposed.get(which));
                 priceHistory.add(totalPrice);
                 totalPrice += Double.parseDouble(proposed.get(which).getPrice());
+                dateDeparture = proposed.get(which).getArrivalTime();
 
             }
 
