@@ -52,24 +52,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private Retrofit retrofit;
 
-    private Date currentDate = new Date();
 
     private String firstDeparture;
+    private String dateDeparture;
 
     private SharedPreferences sharedPreferences;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        firstDeparture = this.getIntent().getStringExtra(Intent.EXTRA_TEXT);
+        Bundle extras = this.getIntent().getExtras();
+        firstDeparture = extras.getString("EXTRA_ITEM");
+        dateDeparture = extras.getString("EXTRA_DATE");
         setContentView(R.layout.activity_maps);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
-        Calendar cal = Calendar.getInstance();
-        currentDate = cal.getTime();
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
@@ -115,13 +115,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         else {
             departure = firstDeparture;
         }
-        String date = ft.format(currentDate);
+
+
         String duration = sharedPreferences.getString("length", "120");
         String maxPrice = sharedPreferences.getString("price", "1000");
-        Log.i("Query", departure + date + duration + maxPrice);
+        Log.i("Query", departure + dateDeparture + duration + maxPrice);
 
 
-        Call<ServerResponse> apiCall = api.getSuggestions(departure, date, duration, maxPrice);
+        Call<ServerResponse> apiCall = api.getSuggestions(departure, dateDeparture, duration, maxPrice);
 
         apiCall.enqueue(new Callback<ServerResponse>() {
             @Override
@@ -198,13 +199,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         API api = retrofit.create(API.class);
                 String maxPrice = sharedPreferences.getString("price", "500");
         String duration = sharedPreferences.getString("length", "120");
-        String destination = destinationToQuery.getId();
-        String origin = current.getId();
-        SimpleDateFormat ft =
-                new SimpleDateFormat("yyyy-MM-dd");
-        String outbound = ft.format(currentDate);
 
-        Call<List<Flight>> apiCall = api.getFlights(maxPrice, duration, origin, destination, outbound);
+        String destination = destinationToQuery.getCityId();
+        String origin = current.getCityId();
+
+
+        Call<List<Flight>> apiCall = api.getFlights(maxPrice, duration, origin, destination, dateDeparture);
 
         apiCall.enqueue(new Callback<List<Flight>>() {
 
