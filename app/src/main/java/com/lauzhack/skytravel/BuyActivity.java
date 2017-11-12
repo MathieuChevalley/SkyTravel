@@ -5,10 +5,13 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.lauzhack.skytravel.utils.Flight;
 
@@ -31,17 +34,13 @@ public class BuyActivity extends AppCompatActivity {
 
         mAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, flights);
         mListView.setAdapter(mAdapter);
-
-
-
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                Flight flight = flights.remove(position);
                mAdapter.notifyDataSetChanged();
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(flight.getTicketLink()));
-                startActivity(intent);
-
+               Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(flight.getTicketLink()));
+               startActivity(intent);
             }
         });
     }

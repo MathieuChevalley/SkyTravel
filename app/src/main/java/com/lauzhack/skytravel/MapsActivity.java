@@ -37,6 +37,7 @@ import com.lauzhack.skytravel.utils.Flight;
 import com.lauzhack.skytravel.utils.ServerResponse;
 import com.lauzhack.skytravel.utils.Suggestions;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -75,12 +76,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private SharedPreferences sharedPreferences;
     private Calendar cal;
+
+    //previous calendar date (to block the datepicker from this date +1)
     private Button buttonBack;
-
-
     private Button buttonReservation;
     private boolean firstTimeInMethod = true;
     private API api;
+
 
 
     private Toolbar toolbar;
@@ -161,8 +163,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void updatePointsToDisplay() {
         api = retrofit.create(API.class);
-        SimpleDateFormat ft =
-                new SimpleDateFormat("yyyy-MM-dd");
         departure = "";
         if (current != null) {
             departure = current.getName();
@@ -193,7 +193,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 }
             };
-            new DatePickerDialog(MapsActivity.this, date, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show();
+            Calendar previousCal = Calendar.getInstance();
+            Log.i("last flight departure time", flights.get(flights.size()-1).getDepartureTime());
+            String[] dateArray = flights.get(flights.size()-1).getDepartureTime().split("T")[0].split("-");
+            Log.i("last flight departure time", dateArray[0]);
+            previousCal.set(Calendar.YEAR, Integer.parseInt(dateArray[0]));
+            Log.i("last flight departure time", dateArray[1]);
+            previousCal.set(Calendar.MONTH, Integer.parseInt(dateArray[1]));
+            Log.i("last flight departure time", dateArray[2]);
+            previousCal.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dateArray[2]) + 1);
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date dateTest = null;
+            long milli = 0;
+            try {
+                dateTest = sdf.parse(dateArray[0]+"-"+dateArray[1]+"-"+(Integer.parseInt(dateArray[2]) + 1)+"");
+                milli = dateTest.getTime();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+            DatePickerDialog dp = new DatePickerDialog(MapsActivity.this, date, previousCal.get(Calendar.YEAR), previousCal.get(Calendar.MONTH) -1, previousCal.get(Calendar.DAY_OF_MONTH));
+            dp.getDatePicker().setMinDate(milli);
+            dp.show();
         }
 
 
