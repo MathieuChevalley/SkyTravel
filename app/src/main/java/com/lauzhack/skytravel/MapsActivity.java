@@ -70,7 +70,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private SharedPreferences sharedPreferences;
     private Calendar cal;
-    private Button buttonBack
+    private Button buttonBack;
 
 
     private Button buttonReservation;
@@ -270,13 +270,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onResponse(Call<List<Flight>> call, Response<List<Flight>> response) {
                 Log.i("show flight", "on");
-
+                Departure lastCurrent = current;
                 if(response.body() != null) {
                     showFlights(response.body());
                 }
-                current = new Departure(destinationToQuery.getName(), destinationToQuery.getCityId(),
-                        destinationToQuery.getCountryId(), destinationToQuery.getLocation(), destinationToQuery.getId());
-                progressDialog.dismiss();
+                if (lastCurrent == current) {
+                    current = new Departure(destinationToQuery.getName(), destinationToQuery.getCityId(),
+                            destinationToQuery.getCountryId(), destinationToQuery.getLocation(), destinationToQuery.getId());
+                    progressDialog.dismiss();
+                }
 
             }
 
